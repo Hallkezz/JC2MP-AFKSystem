@@ -3,7 +3,7 @@
 
 I created a script that adds the ability of AFC to your server!
 
-* P.S - I'm new to scripting! :-\ 
+* P.S - I'm new to scripting!
 
 **How to use:**
 * Type ***/afk*** or ***/pause*** to get in AFK mode.
