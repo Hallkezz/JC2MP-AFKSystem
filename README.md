@@ -1,5 +1,6 @@
 # AFKSystem
 **Hello again!**
+
 I created a script that adds the ability of AFC to your server!
 
 * P.S - I'm new to scripting! :-\ 
