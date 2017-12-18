@@ -11,6 +11,9 @@ function AFKSystem:__init()
 	self.motdcontent =  "You're AFK" -- Text in the window.	
 	self.title =  "AFK" -- Title text.
 	self.warning = "You cannot enter the AFC here!" --  Warning when the player is in another world.
+	self.pause = "You're AFK!" -- "Pause" Text.
+	self.unpause = "Welcome back" -- "Continue" Text.
+	self.TColor = Color.Yellow -- Message text color.
 
 	self.active = false
 	
@@ -43,6 +46,7 @@ function AFKSystem:__init()
 	self.contents2 = Label.Create( base1 )
 	self.contents2:SetSize( Vector2( self.window:GetSize().x, 32 ) )
 	self.contents2:SetText( self.motdcontent )
+	self.contents2:SetTextSize(13)
 	self.contents2:SetDock( GwenPosition.Left )
 	
 	Events:Subscribe( "Render", self, self.Render )
@@ -76,6 +80,7 @@ end
 
 function AFKSystem:Open( args )
 	self:SetActive( true )
+	Chat:Print(self.pause, self.TColor ) -- "Pause" Text.
 end
 
 function AFKSystem:LocalPlayerInput( args )
@@ -89,7 +94,7 @@ end
 function AFKSystem:SetActive( active )
     if self.active ~= active then
         if active == true and LocalPlayer:GetWorld() ~= DefaultWorld then
-            Chat:Print( self.warning, Color( 255, 0, 0 ) )
+            Chat:Print( self.warning, Color.Red )
             return
         end
 
@@ -97,7 +102,7 @@ function AFKSystem:SetActive( active )
 		    Game:FireEvent("ply.vulnerable") -- The script disables immortality.
 			Game:FireEvent("ply.unpause") -- Defrost of the player.
 			Game:FireEvent("bm.savecheckpoint.go") -- The script displays the "Saving"
-			Chat:Print("Welcome back, " .. LocalPlayer:GetName() .. "!", Color.Yellow)
+			Chat:Print(self.unpause .. ", " .. LocalPlayer:GetName() .. "!", self.TColor) -- "Resume" Text.
             local sound = ClientSound.Create(AssetLocation.Game, {
 			    bank_id = 13,
 			    sound_id = 3,
@@ -148,3 +153,5 @@ function ModuleUnload()
 end
 
 local AFKSystem = AFKSystem()
+
+--v0.2--
