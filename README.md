@@ -1,10 +1,10 @@
 # AFKSystem
 **Hello again!**
 
-I created a script that adds the ability of AFC to your server!
+I created a script that adds the ability of AFC-Mode to your server!
 
 **How to use:**
-* Type ***/afk*** or ***/pause*** to get in AFK mode.
+* Type ***/afk*** or ***/pause*** to get in AFK-Mode.
 
 **Pleasant use! :)**
 
