@@ -8,4 +8,4 @@ I created a script that adds the ability of AFK-Mode to your server!
 
 **Pleasant use! :)**
 
-[Forum in jc-mp.com](https://www.jc-mp.com/forums/index.php/topic,6086.0.html)
+[Post on forum jc-mp.com](https://www.jc-mp.com/forums/index.php/topic,6086.0.html)
