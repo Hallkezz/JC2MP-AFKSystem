@@ -10,8 +10,8 @@ local active = false -- ON/OFF AFKSystem window.
 local cooldown = 15 -- Cooldown time.
 local buttonName = "Continue" -- "Continue" button name.
 local winSize = 0.1 -- Window size.
-local content = "You are AFK" -- Text in the window.
-local title = "AFK" -- Title text.
+local content = "You are AFK" -- Message in the window.
+local title = "AFK" -- Window name.
 ---------------------
 local tColor = Color.Yellow -- Message text color.
 local pause = "AFK-Mode enabled." -- "Pause" Text.
@@ -21,7 +21,7 @@ local warning = "You can not use it here!" --  Warning when the player is in ano
 local tagOffset = 30
 local tagSize = 16
 local tagText  = "AFK"
-local tagColor = Color(0, 200, 255, 250)
+local tagColor = Color( 0, 200, 255 )
 -----------------------------------------------------------------------------------
 
 
@@ -32,42 +32,42 @@ class 'AFKSystem'
 function AFKSystem:__init()
 	timer = Timer()
 	self.cooltime = 0
-	
+
 	self.active = active
-	
+
 	if debug then
 		print("AFKSystem loaded.") -- Debug info in console.
 	end	
-	
+
 --Window
 	self.window = Window.Create()
-    self.window:SetSizeRel( Vector2( winSize, winSize ) )
-    self.window:SetPositionRel( Vector2( 0.5, 0.5 ) - self.window:GetSizeRel()/2 )
-    self.window:SetVisible( self.active )
-    self.window:SetTitle( title )
-    self.window:Subscribe( "WindowClosed", self, self.Close )
-	
+	self.window:SetSizeRel( Vector2( winSize, winSize ) )
+	self.window:SetPositionRel( Vector2( 0.5, 0.5 ) - self.window:GetSizeRel()/2 )
+	self.window:SetVisible( self.active )
+	self.window:SetTitle( title )
+	self.window:Subscribe( "WindowClosed", self, self.Close )
+
 	local base1 = BaseWindow.Create( self.window )
-    base1:SetDock( GwenPosition.Fill )
-    base1:SetSize( Vector2( self.window:GetSize().x, self.window:GetSize().y ) )
-	
+	base1:SetDock( GwenPosition.Fill )
+	base1:SetSize( Vector2( self.window:GetSize().x, self.window:GetSize().y ) )
+
 --Button
 	self.button = Button.Create( base1 )
-    self.button:SetSize( Vector2( self.window:GetSize().x, 22 ) )
-    self.button:SetText( buttonName )
-    self.button:SetDock( GwenPosition.Bottom )
-    self.button:Subscribe( "Press", self, self.Close )
-	
+	self.button:SetSize( Vector2( self.window:GetSize().x, 22 ) )
+	self.button:SetText( buttonName )
+	self.button:SetDock( GwenPosition.Bottom )
+	self.button:Subscribe( "Press", self, self.Close )
+
 	self.contents = Label.Create( base1 )
 	self.contents:SetSize( Vector2( self.window:GetSize().x, 32 ) )
 	self.contents:SetText( content )
 	self.contents:SetTextSize(14)
 	self.contents:SetDock( GwenPosition.Left )
-	
+
 	Events:Subscribe( "Render", self, self.Render )
 	Events:Subscribe( "LocalPlayerInput", self, self.LocalPlayerInput )
 	Events:Subscribe( "ModulesLoad", self, self.ModulesLoad)
-    Events:Subscribe( "ModuleUnload", self, self.ModuleUnload)
+	Events:Subscribe( "ModuleUnload", self, self.ModuleUnload)
 	Network:Subscribe( "AFKSystem", self, self.Display )
 end
 
@@ -92,10 +92,12 @@ function AFKSystem:Open( args )
 		end
 		return
 	end
-	
+
+	Network:Send( "ToggleAFKTeg" )
+	Events:Fire( "AntiCheat", {acActive = false} ) -- Disable Anti-Cheat
 	self:SetActive( true )
-	Chat:Print(pause, tColor ) -- "Pause" Text.
-	
+	Chat:Print(pause, tColor ) -- "Pause" button name.
+
 	if debug then
 		print("AFK enabled.") -- Debug info in console.
 	end	
@@ -106,9 +108,9 @@ function AFKSystem:Open( args )
 end
 
 function AFKSystem:LocalPlayerInput( args )
-    if self.active and Game:GetState() == GUIState.Game then
-        return false
-    end
+	if self.active and Game:GetState() == GUIState.Game then
+		return false
+	end
 end
 
 function AFKSystem:SetActive( active )
@@ -119,10 +121,11 @@ function AFKSystem:SetActive( active )
         end
 
 		if not active then
-		    Game:FireEvent("ply.vulnerable") -- The script disables immortality.
-			Game:FireEvent("ply.unpause") -- Defrost of the player.
-			Game:FireEvent("bm.savecheckpoint.go") -- The script displays the "Saving"
-			Chat:Print(unpause .. " " .. LocalPlayer:GetName() .. "!", tColor) -- "Resume" Text.
+		    Game:FireEvent("ply.vulnerable") -- The script disвables immortality.
+			Game:FireEvent("ply.unpause") -- Unfreeze of the player.
+			Game:FireEvent("bm.savecheckpoint.go") -- The event shows "Saving" tip.
+			Chat:Print(unpause .. " " .. LocalPlayer:GetName() .. "!", tColor) -- "Resume" button name.
+			Events:Fire( "AntiCheat", {acActive = true} ) -- Enable Anti-Cheat
             local sound = ClientSound.Create(AssetLocation.Game, {
 			    bank_id = 13,
 			    sound_id = 3,
@@ -139,9 +142,10 @@ end
 
 function AFKSystem:Render()
     local is_visible = self.active and (Game:GetState() == GUIState.Game)
-	
+	if Game:GetState() ~= GUIState.Game then return end
+
 	for player in Client:GetStreamedPlayers() do
-		if self.active then
+		if player:GetValue( "PlayerAFK" ) then
 			local tagpos    = player:GetBonePosition("ragdoll_Head") + Vector3(0, 0.4, 0)
 			local distance  = tagpos:Distance(LocalPlayer:GetPosition())
 			local pos, onsc = Render:WorldToScreen(tagpos)
@@ -158,7 +162,7 @@ function AFKSystem:Render()
 				Render:DrawText(pos, tagText, color, tagSize, scale)
 			end
 		end
-	end	
+	end
 
     if self.window:GetVisible() ~= is_visible then
         self.window:SetVisible( is_visible )
@@ -172,7 +176,8 @@ end
 
 function AFKSystem:Close( args )
     self:SetActive( false )
-	
+	Network:Send( "ToggleAFKTeg" )
+
 	if debug then
 		print("AFK disabled.") -- Debug info in console.
 	end		
@@ -184,8 +189,8 @@ function AFKSystem:ModulesLoad()
 		{
 			name = "AFK",
 			text = 
-				"Type /afk or /pause to enter in AFK mode.\n" ..
-				"\n::By Hallkezz!"
+				"Type /afk or /pause to enter in AFK mode.\n \n" ..
+				"- Created By Hallkezz"
 		} )
 end
 
@@ -198,5 +203,5 @@ end
 
 afksystem = AFKSystem()
 
---v1.1--
---04.11.18--
+--v2--
+--28.10.19--
